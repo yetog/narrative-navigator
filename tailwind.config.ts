@@ -57,33 +57,57 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Custom theme colors
+        teal: {
+          DEFAULT: "hsl(var(--teal-glow))",
+          glow: "hsl(var(--teal-glow))",
+        },
+        gold: {
+          DEFAULT: "hsl(var(--gold-glow))",
+          glow: "hsl(var(--gold-glow))",
+        },
+        surface: {
+          elevated: "hsl(var(--surface-elevated))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "monospace"],
+        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+      },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.6" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        shimmer: "shimmer 2s linear infinite",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+      },
+      boxShadow: {
+        "glow-teal": "0 0 20px hsl(168 84% 40% / 0.3), 0 0 40px hsl(168 84% 40% / 0.1)",
+        "glow-gold": "0 0 20px hsl(38 92% 50% / 0.3), 0 0 40px hsl(38 92% 50% / 0.1)",
+        "glow-teal-sm": "0 0 10px hsl(168 84% 40% / 0.2)",
       },
     },
   },
