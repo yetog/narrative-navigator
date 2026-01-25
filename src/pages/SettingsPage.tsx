@@ -54,6 +54,16 @@ export default function SettingsPage() {
     const value = keys[config.key];
     if (value?.trim()) {
       localStorage.setItem(config.storageKey, value.trim());
+      
+      // Also save to unified settings object for hooks
+      const settings = JSON.parse(localStorage.getItem("content-studio-settings") || "{}");
+      if (config.key === "openai") {
+        settings.openaiKey = value.trim();
+      } else if (config.key === "elevenlabs") {
+        settings.elevenLabsKey = value.trim();
+      }
+      localStorage.setItem("content-studio-settings", JSON.stringify(settings));
+      
       setSaved(prev => ({ ...prev, [config.key]: true }));
       toast({
         title: "API Key Saved",
@@ -67,6 +77,16 @@ export default function SettingsPage() {
 
   const handleClear = (config: ApiKeyConfig) => {
     localStorage.removeItem(config.storageKey);
+    
+    // Also clear from unified settings object
+    const settings = JSON.parse(localStorage.getItem("content-studio-settings") || "{}");
+    if (config.key === "openai") {
+      delete settings.openaiKey;
+    } else if (config.key === "elevenlabs") {
+      delete settings.elevenLabsKey;
+    }
+    localStorage.setItem("content-studio-settings", JSON.stringify(settings));
+    
     setKeys(prev => ({ ...prev, [config.key]: "" }));
     toast({
       title: "API Key Removed",
