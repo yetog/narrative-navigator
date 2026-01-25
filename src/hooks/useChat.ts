@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { ChatMessage } from "@/types/content";
+import { ChatMessage, ChatAttachment } from "@/types/content";
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -39,7 +39,11 @@ export function useChat() {
     return null;
   }, []);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (
+    content: string, 
+    attachments: ChatAttachment[] = [], 
+    isVoiceInput: boolean = false
+  ) => {
     const apiKey = getApiKey();
     if (!apiKey) {
       setError("Please add your OpenAI API key in Settings first.");
@@ -52,6 +56,8 @@ export function useChat() {
       role: "user",
       content,
       timestamp: new Date().toISOString(),
+      attachments: attachments.length > 0 ? attachments : undefined,
+      isVoiceInput,
     };
     
     setMessages(prev => [...prev, userMessage]);
