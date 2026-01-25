@@ -38,11 +38,22 @@ export interface ContentItem {
   starred?: boolean;
 }
 
+export interface ChatAttachment {
+  id: string;
+  type: "image" | "file";
+  name: string;
+  url: string; // ObjectURL or base64 data URL
+  mimeType: string;
+  size: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  attachments?: ChatAttachment[];
+  isVoiceInput?: boolean;
 }
 
 export interface Conversation {

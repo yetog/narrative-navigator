@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Settings, Key, Check, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Settings, Key, Check, AlertCircle, Eye, EyeOff, Bot, Presentation } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,6 +13,8 @@ interface ApiKeyConfig {
   description: string;
   placeholder: string;
   storageKey: string;
+  settingsKey: string;
+  icon?: React.ReactNode;
 }
 
 const API_KEYS: ApiKeyConfig[] = [
@@ -22,13 +24,31 @@ const API_KEYS: ApiKeyConfig[] = [
     description: "Powers all AI text generation features",
     placeholder: "sk-...",
     storageKey: "openai_api_key",
+    settingsKey: "openaiKey",
   },
   {
     key: "elevenlabs",
     name: "ElevenLabs API Key",
-    description: "Enables voiceover generation",
+    description: "Enables high-quality voice synthesis",
     placeholder: "xi-...",
     storageKey: "elevenlabs_api_key",
+    settingsKey: "elevenLabsKey",
+  },
+  {
+    key: "elevenlabs_agent",
+    name: "ElevenLabs Agent ID",
+    description: "Enables conversational AI voice mode",
+    placeholder: "agent_...",
+    storageKey: "elevenlabs_agent_id",
+    settingsKey: "elevenLabsAgentId",
+  },
+  {
+    key: "gamma",
+    name: "Gamma API Key",
+    description: "Powers presentation and deck generation",
+    placeholder: "sk-gamma-...",
+    storageKey: "gamma_api_key",
+    settingsKey: "gammaKey",
   },
 ];
 
@@ -39,12 +59,13 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    // Load saved keys
+    // Load saved keys from unified settings
+    const settings = JSON.parse(localStorage.getItem("content-studio-settings") || "{}");
     const loadedKeys: Record<string, string> = {};
+    
     API_KEYS.forEach(config => {
-      const savedKey = localStorage.getItem(config.storageKey);
-      if (savedKey) {
-        loadedKeys[config.key] = savedKey;
+      if (settings[config.settingsKey]) {
+        loadedKeys[config.key] = settings[config.settingsKey];
       }
     });
     setKeys(loadedKeys);
@@ -53,21 +74,15 @@ export default function SettingsPage() {
   const handleSave = (config: ApiKeyConfig) => {
     const value = keys[config.key];
     if (value?.trim()) {
-      localStorage.setItem(config.storageKey, value.trim());
-      
-      // Also save to unified settings object for hooks
+      // Save to unified settings object
       const settings = JSON.parse(localStorage.getItem("content-studio-settings") || "{}");
-      if (config.key === "openai") {
-        settings.openaiKey = value.trim();
-      } else if (config.key === "elevenlabs") {
-        settings.elevenLabsKey = value.trim();
-      }
+      settings[config.settingsKey] = value.trim();
       localStorage.setItem("content-studio-settings", JSON.stringify(settings));
       
       setSaved(prev => ({ ...prev, [config.key]: true }));
       toast({
         title: "API Key Saved",
-        description: `${config.name} has been saved securely.`,
+        description: `${config.name} has been saved.`,
       });
       setTimeout(() => {
         setSaved(prev => ({ ...prev, [config.key]: false }));
@@ -76,15 +91,9 @@ export default function SettingsPage() {
   };
 
   const handleClear = (config: ApiKeyConfig) => {
-    localStorage.removeItem(config.storageKey);
-    
-    // Also clear from unified settings object
+    // Clear from unified settings object
     const settings = JSON.parse(localStorage.getItem("content-studio-settings") || "{}");
-    if (config.key === "openai") {
-      delete settings.openaiKey;
-    } else if (config.key === "elevenlabs") {
-      delete settings.elevenLabsKey;
-    }
+    delete settings[config.settingsKey];
     localStorage.setItem("content-studio-settings", JSON.stringify(settings));
     
     setKeys(prev => ({ ...prev, [config.key]: "" }));
@@ -98,9 +107,22 @@ export default function SettingsPage() {
     setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const isConfigured = (key: string) => !!localStorage.getItem(
-    API_KEYS.find(k => k.key === key)?.storageKey || ""
-  );
+  const isConfigured = (key: string) => {
+    const settings = JSON.parse(localStorage.getItem("content-studio-settings") || "{}");
+    const config = API_KEYS.find(k => k.key === key);
+    return config ? !!settings[config.settingsKey] : false;
+  };
+
+  const getIcon = (key: string) => {
+    switch (key) {
+      case "elevenlabs_agent":
+        return <Bot className="w-4 h-4 text-secondary" />;
+      case "gamma":
+        return <Presentation className="w-4 h-4 text-purple-400" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <AppLayout>
@@ -122,14 +144,15 @@ export default function SettingsPage() {
               API Keys
             </CardTitle>
             <CardDescription>
-              Your API keys are stored locally in your browser and never sent to our servers.
+              Your API keys are stored locally in your browser.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {API_KEYS.map(config => (
               <div key={config.key} className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor={config.key} className="text-base font-medium">
+                  <Label htmlFor={config.key} className="text-base font-medium flex items-center gap-2">
+                    {getIcon(config.key)}
                     {config.name}
                   </Label>
                   {isConfigured(config.key) ? (
@@ -181,16 +204,17 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Info Card */}
-        <Card className="border-primary/20 bg-primary/5">
+        {/* Security Warning */}
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="pt-6">
             <div className="flex gap-3">
-              <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <p className="font-medium">Security Note</p>
+                <p className="font-medium text-destructive">Security Warning</p>
                 <p className="text-sm text-muted-foreground">
-                  API keys are stored in your browser's local storage. They are only used to make 
-                  direct API calls from your browser and are never transmitted to any third-party servers.
+                  These private API keys are stored in your browser's local storage. They will be visible 
+                  in network requests and could be accessed by anyone inspecting your browser. For production 
+                  use, consider enabling Lovable Cloud for secure server-side key storage.
                 </p>
               </div>
             </div>

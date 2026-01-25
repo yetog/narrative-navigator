@@ -1,4 +1,4 @@
-import { User, Sparkles, Save } from "lucide-react";
+import { User, Sparkles, Save, Mic, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ChatMessage as ChatMessageType } from "@/types/content";
@@ -14,8 +14,6 @@ export function ChatMessage({ message, onSave }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   const handleSave = () => {
-    // Parse the message and save as content item
-    // For now, just show a toast - will be connected to content store
     toast({
       title: "Idea saved!",
       description: "Added to your content library.",
@@ -66,8 +64,38 @@ export function ChatMessage({ message, onSave }: ChatMessageProps) {
       {/* Message bubble */}
       <div className={cn(
         "flex-1 max-w-[85%]",
-        isUser && "flex justify-end"
+        isUser && "flex flex-col items-end"
       )}>
+        {/* Voice indicator */}
+        {isUser && message.isVoiceInput && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+            <Mic className="w-3 h-3" />
+            <span>Voice</span>
+          </div>
+        )}
+
+        {/* Attachments */}
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {message.attachments.map((attachment) => (
+              <div key={attachment.id} className="rounded-lg overflow-hidden border border-border">
+                {attachment.type === "image" ? (
+                  <img
+                    src={attachment.url}
+                    alt={attachment.name}
+                    className="max-w-[200px] max-h-[150px] object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-muted/50">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs truncate max-w-[120px]">{attachment.name}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className={cn(
           "rounded-2xl px-4 py-3 text-sm",
           isUser 
